@@ -1141,7 +1141,8 @@ ACodec::BufferInfo *ACodec::dequeueBufferFromNativeWindow() {
         VideoDecoderOutputMetaData *metaData =
             reinterpret_cast<VideoDecoderOutputMetaData *>(
                     oldest->mData->base());
-        CHECK_EQ(metaData->eType, kMetadataBufferTypeGrallocSource);
+        // metaData is only readable if codec is in the same process
+        //CHECK_EQ(metaData->eType, kMetadataBufferTypeGrallocSource);
 
         ALOGV("replaced oldest buffer #%u with age %u (%p/%p stored in %p)",
                 oldest - &mBuffers[kPortIndexOutput][0],
@@ -2165,6 +2166,7 @@ status_t ACodec::setupAACCodec(
             : OMX_AUDIO_AACStreamFormatMP4FF;
 
     OMX_AUDIO_PARAM_ANDROID_AACPRESENTATIONTYPE presentation;
+    InitOMXParams(&presentation);
     presentation.nMaxOutputChannels = maxOutputChannelCount;
     presentation.nDrcCut = drc.drcCut;
     presentation.nDrcBoost = drc.drcBoost;
@@ -3214,7 +3216,7 @@ status_t ACodec::setupAVCEncoderParameters(const sp<AMessage> &msg) {
 
     // XXX
     // Allow higher profiles to be set since the encoder seems to support
-#if 0
+#ifdef USE_AVC_BASELINE_PROFILE
     if (h264type.eProfile != OMX_VIDEO_AVCProfileBaseline) {
         ALOGW("Use baseline profile instead of %d for AVC recording",
             h264type.eProfile);
